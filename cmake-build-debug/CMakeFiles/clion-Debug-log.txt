@@ -1,4 +1,4 @@
-/Applications/CLion.app/Contents/bin/cmake/mac/bin/cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_MAKE_PROGRAM=/Applications/CLion.app/Contents/bin/ninja/mac/ninja -G Ninja -S /Users/boryskurdek/CLionProjects/cuda_bfs -B /Users/boryskurdek/CLionProjects/cuda_bfs/cmake-build-debug
+/Applications/CLion.app/Contents/bin/cmake/mac/bin/cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_MAKE_PROGRAM=/Applications/CLion.app/Contents/bin/ninja/mac/ninja -G Ninja -S /Users/boryskurdek/Studia/sem5/cuda/cuda-bfs -B /Users/boryskurdek/Studia/sem5/cuda/cuda-bfs/cmake-build-debug
 CMake Error at /Applications/CLion.app/Contents/bin/cmake/mac/share/cmake-3.24/Modules/CMakeDetermineCUDACompiler.cmake:180 (message):
   Failed to find nvcc.
 
@@ -9,5 +9,5 @@ Call Stack (most recent call first):
 
 
 -- Configuring incomplete, errors occurred!
-See also "/Users/boryskurdek/CLionProjects/cuda_bfs/cmake-build-debug/CMakeFiles/CMakeOutput.log".
-See also "/Users/boryskurdek/CLionProjects/cuda_bfs/cmake-build-debug/CMakeFiles/CMakeError.log".
+See also "/Users/boryskurdek/Studia/sem5/cuda/cuda-bfs/cmake-build-debug/CMakeFiles/CMakeOutput.log".
+See also "/Users/boryskurdek/Studia/sem5/cuda/cuda-bfs/cmake-build-debug/CMakeFiles/CMakeError.log".
