@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.24)
+cmake_minimum_required(VERSION 3.21)
 project(cuda_bfs CUDA)
 
 set(CMAKE_CUDA_STANDARD 23)
