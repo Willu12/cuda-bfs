@@ -4,8 +4,8 @@
 #include <fstream>
 
 struct Graph {
-    unsigned int n{}; // |V|
-    unsigned int m{}; // |E|
+    unsigned int n; // |V|
+    unsigned int m; // |E|
     std::vector<unsigned int> v_adj_list; // concatenation of all adj_lists for all vertices (size of m);
     std::vector<unsigned int> v_adj_begin; // size of n
     std::vector<unsigned int> v_adj_length; //size of m
@@ -81,7 +81,7 @@ void get_path(unsigned int start, unsigned int end, const std::vector<unsigned i
 void cpu_BFS(const Graph &g, unsigned int start, unsigned int end) {
     std::vector<unsigned int> prev(g.n);
     for(unsigned int v = 0; v<g.n; v++) {
-        prev[v] = -1;
+        prev[v] = UINT_MAX;
     }
 
     std::clock_t start_clock;
@@ -127,8 +127,8 @@ Graph get_Graph_from_file(char const* path) {
             start_line = current_line;
             current_node = start;
         }
-
         current_line++;
     }
-    return Graph {n,m,v_adj_list,v_adj_begin,v_adj_length};
+    Graph G {n,m,v_adj_list,v_adj_begin,v_adj_length};
+    return G;
 }
