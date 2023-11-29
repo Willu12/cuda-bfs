@@ -129,6 +129,6 @@ Graph get_Graph_from_file(char const* path) {
         }
         current_line++;
     }
-    struct Graph G {.n = n, .m = m,.v_adj_list =v_adj_list,.v_adj_begin = v_adj_begin,.v_adj_length = v_adj_length};
+    Graph G {n,m,v_adj_list,v_adj_begin,v_adj_length};
     return G;
 }
