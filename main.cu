@@ -12,7 +12,7 @@ void compute_bfs(const Graph& g, unsigned int start, unsigned int end, std::vect
 void get_path(unsigned int start, unsigned int end, const std::vector<unsigned int>& prev,unsigned int n);
 void cpu_BFS(const Graph& g, unsigned int start, unsigned int end);
 cudaError_t cuda_BFS_prefix_scan(const Graph& G, unsigned int start, unsigned int end);
-cudaError_t cuda_init(const Graph& G, unsigned int* v_adj_list, unsigned int* v_adj_begin, unsigned int* v_adj_length);
+cudaError_t cuda_init(const Graph& G, unsigned int** v_adj_list, unsigned int** v_adj_begin, unsigned int** v_adj_length);
 int main() {
     Graph new_graph = get_Graph_from_file("data/california.txt");
     cpu_BFS(new_graph,732,240332);
@@ -101,7 +101,7 @@ cudaError_t cuda_BFS_prefix_scan(const Graph& G, unsigned int start, unsigned in
     cudaError_t cudaStatus;
 
 
-    cudaStatus = cuda_init(G,v_adj_list,v_adj_begin,v_adj_length);
+    cudaStatus = cuda_init(G,&v_adj_list,&v_adj_begin,&v_adj_length);
     if (cudaStatus != cudaSuccess) {
         fprintf(stderr, "cuda init failed");
         goto Error;
@@ -118,7 +118,7 @@ cudaError_t cuda_BFS_prefix_scan(const Graph& G, unsigned int start, unsigned in
 }
 
 
-cudaError_t cuda_init(const Graph& G, unsigned int* v_adj_list, unsigned int* v_adj_begin, unsigned int* v_adj_length) {
+cudaError_t cuda_init(const Graph& G, unsigned int** v_adj_list, unsigned int** v_adj_begin, unsigned int** v_adj_length) {
      
     cudaError_t cudaStatus;
     cudaStatus = cudaSetDevice(0);
@@ -127,34 +127,34 @@ cudaError_t cuda_init(const Graph& G, unsigned int* v_adj_list, unsigned int* v_
         goto Error;
     }
 
-    cudaStatus = cudaMalloc((void**)&v_adj_list, G.m * sizeof(unsigned int));
+    cudaStatus = cudaMalloc((void**)&(*v_adj_list), G.m * sizeof(unsigned int));
     if (cudaStatus != cudaSuccess) {
         fprintf(stderr, "cudaMalloc failed!");
         goto Error;
     }
 
-    cudaStatus = cudaMalloc((void**)&v_adj_begin, G.n * sizeof(unsigned int));
+    cudaStatus = cudaMalloc((void**)&(*v_adj_begin), G.n * sizeof(unsigned int));
     if (cudaStatus != cudaSuccess) {
         fprintf(stderr, "cudaMalloc failed!");
         goto Error;
     }
-    cudaStatus = cudaMalloc((void**)&v_adj_length, G.n * sizeof(unsigned int));
+    cudaStatus = cudaMalloc((void**)&(*v_adj_length), G.n * sizeof(unsigned int));
     if (cudaStatus != cudaSuccess) {
         fprintf(stderr, "cudaMalloc failed!");
         goto Error;
     }
 
-    cudaStatus = cudaMemcpy(v_adj_list, G.v_adj_list.data, G.m * sizeof(unsigned int), cudaMemcpyHostToDevice);
+    cudaStatus = cudaMemcpy(*v_adj_list, G.v_adj_list.data, G.m * sizeof(unsigned int), cudaMemcpyHostToDevice);
     if (cudaStatus != cudaSuccess) {
         fprintf(stderr, "cudaMemcpy failed!");
         goto Error;
     }
-    cudaStatus = cudaMemcpy(v_adj_begin, G.v_adj_begin.data, G.n * sizeof(unsigned int), cudaMemcpyHostToDevice);
+    cudaStatus = cudaMemcpy(*v_adj_begin, G.v_adj_begin.data, G.n * sizeof(unsigned int), cudaMemcpyHostToDevice);
     if (cudaStatus != cudaSuccess) {
         fprintf(stderr, "cudaMemcpy failed!");
         goto Error;
     }
-    cudaStatus = cudaMemcpy(v_adj_length, G.v_adj_length.data, G.n * sizeof(unsigned int), cudaMemcpyHostToDevice);
+    cudaStatus = cudaMemcpy(*v_adj_length, G.v_adj_length.data, G.n * sizeof(unsigned int), cudaMemcpyHostToDevice);
     if (cudaStatus != cudaSuccess) {
         fprintf(stderr, "cudaMemcpy failed!");
         goto Error;
@@ -163,9 +163,9 @@ cudaError_t cuda_init(const Graph& G, unsigned int* v_adj_list, unsigned int* v_
 
 
     Error:
-    cudaFree(v_adj_list);
-    cudaFree(v_adj_begin);
-    cudaFree(v_adj_length);
+    cudaFree(*v_adj_list);
+    cudaFree(*v_adj_begin);
+    cudaFree(*v_adj_length);
 
     return cudaStatus;
 }
