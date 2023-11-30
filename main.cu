@@ -2,19 +2,13 @@
 #include <queue>
 #include <ctime>
 #include <fstream>
+#include "graph.cpp"
 
-struct Graph {
-    unsigned int n; // |V|
-    unsigned int m; // |E|
-    std::vector<unsigned int> v_adj_list; // concatenation of all adj_lists for all vertices (size of m);
-    std::vector<unsigned int> v_adj_begin; // size of n
-    std::vector<unsigned int> v_adj_length; //size of m
-};
 
 void compute_bfs(const Graph& g, unsigned int start, unsigned int end, std::vector<unsigned int>& prev);
 void get_path(unsigned int start, unsigned int end, const std::vector<unsigned int>& prev,unsigned int n);
 void cpu_BFS(const Graph& g, unsigned int start, unsigned int end);
-Graph get_Graph_from_file(char const* path);
+void cuda_BFS_prefix_scan(const Graph& G, unsigned int start, unsigned int end);
 
 int main() {
     Graph new_graph = get_Graph_from_file("data/california.txt");
@@ -95,40 +89,8 @@ void cpu_BFS(const Graph &g, unsigned int start, unsigned int end) {
     get_path(start,end,prev,g.n);
 }
 
-Graph get_Graph_from_file(char const* path) {
-    std::ifstream file(path,std::ios::binary);
-
-    if (!file.is_open()) std::cout << "failed to open "  << '\n';
-
-    unsigned int n,m = 0;
-    unsigned int start_line = 0;
-    unsigned int current_line = 0;
-    unsigned int current_node = 0;
-    unsigned int start, end;
-
-    while (file >> start >> end) {
-        m++;
-    }
-    n = start;
-    file.clear();
-    file.seekg(0, file.beg);
-
-    std::vector<unsigned int> v_adj_list(m);
-    std::vector<unsigned int> v_adj_begin(n);
-    std::vector<unsigned int> v_adj_length(n);
-
-    while (file >> start >> end)
-    {
-        v_adj_list[current_line] = end;
-
-        if (start != current_node) {
-            v_adj_begin[current_node] = start_line;
-            v_adj_length[current_node] = current_line - start_line;
-            start_line = current_line;
-            current_node = start;
-        }
-        current_line++;
-    }
-    Graph G {n,m,v_adj_list,v_adj_begin,v_adj_length};
-    return G;
+void cuda_BFS_prefix_scan(const Graph& G, unsigned int start, unsigned int end) {
+    //tutaj trzeba zrobić wszystko 
+    // inicjalizuje tabilice
+    
 }
