@@ -12,8 +12,7 @@ void compute_bfs(const Graph& g, unsigned int start, unsigned int end, std::vect
 void get_path(unsigned int start, unsigned int end, const std::vector<unsigned int>& prev,unsigned int n);
 void cpu_BFS(const Graph& g, unsigned int start, unsigned int end);
 cudaError_t cuda_BFS_prefix_scan(const Graph& G, unsigned int start, unsigned int end);
-cudaError_t cuda_init(const Graph& G);
-
+cudaError_t cuda_init(const Graph& G, unsigned int* v_adj_list, unsigned int* v_adj_begin, unsigned int* v_adj_length);
 int main() {
     Graph new_graph = get_Graph_from_file("data/california.txt");
     cpu_BFS(new_graph,732,240332);
@@ -161,7 +160,7 @@ cudaError_t cuda_init(const Graph& G, unsigned int* v_adj_list, unsigned int* v_
         goto Error;
     }
 
-    
+
 
     Error:
     cudaFree(v_adj_list);
