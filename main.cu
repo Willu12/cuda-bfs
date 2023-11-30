@@ -3,12 +3,15 @@
 #include <ctime>
 #include <fstream>
 #include "graph.cpp"
+#include "cuda_runtime.h"
+#include "device_launch_parameters.h"
+#include <stdio.h>
 
 
 void compute_bfs(const Graph& g, unsigned int start, unsigned int end, std::vector<unsigned int>& prev);
 void get_path(unsigned int start, unsigned int end, const std::vector<unsigned int>& prev,unsigned int n);
 void cpu_BFS(const Graph& g, unsigned int start, unsigned int end);
-void cuda_BFS_prefix_scan(const Graph& G, unsigned int start, unsigned int end);
+cudaError_t cuda_BFS_prefix_scan(const Graph& G, unsigned int start, unsigned int end);
 
 int main() {
     Graph new_graph = get_Graph_from_file("data/california.txt");
@@ -89,8 +92,9 @@ void cpu_BFS(const Graph &g, unsigned int start, unsigned int end) {
     get_path(start,end,prev,g.n);
 }
 
-void cuda_BFS_prefix_scan(const Graph& G, unsigned int start, unsigned int end) {
+cudaError_t cuda_BFS_prefix_scan(const Graph& G, unsigned int start, unsigned int end) {
     //tutaj trzeba zrobić wszystko 
     // inicjalizuje tabilice
-    
 }
+
+
