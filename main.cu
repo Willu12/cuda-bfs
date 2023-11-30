@@ -12,6 +12,7 @@ void compute_bfs(const Graph& g, unsigned int start, unsigned int end, std::vect
 void get_path(unsigned int start, unsigned int end, const std::vector<unsigned int>& prev,unsigned int n);
 void cpu_BFS(const Graph& g, unsigned int start, unsigned int end);
 cudaError_t cuda_BFS_prefix_scan(const Graph& G, unsigned int start, unsigned int end);
+cudaError_t cuda_init(const Graph& G);
 
 int main() {
     Graph new_graph = get_Graph_from_file("data/california.txt");
@@ -95,6 +96,77 @@ void cpu_BFS(const Graph &g, unsigned int start, unsigned int end) {
 cudaError_t cuda_BFS_prefix_scan(const Graph& G, unsigned int start, unsigned int end) {
     //tutaj trzeba zrobić wszystko 
     // inicjalizuje tabilice
+    unsigned int* v_adj_list;
+    unsigned int* v_adj_begin;
+    unsigned int* v_adj_length;
+    cudaError_t cudaStatus;
+
+
+    cudaStatus = cuda_init(G,v_adj_list,v_adj_begin,v_adj_length);
+    if (cudaStatus != cudaSuccess) {
+        fprintf(stderr, "cuda init failed");
+        goto Error;
+    }
+
+  
+
+    Error:
+    //cudaFree(v_adj_list);
+    //cudaFree(v_adj_begin);
+    //cudaFree(v_adj_length);
+    
+    return cudaStatus;
 }
 
 
+cudaError_t cuda_init(const Graph& G, unsigned int* v_adj_list, unsigned int* v_adj_begin, unsigned int* v_adj_length) {
+     
+    cudaError_t cudaStatus;
+    cudaStatus = cudaSetDevice(0);
+    if (cudaStatus != cudaSuccess) {
+        fprintf(stderr, "cudaSetDevice failed!  Do you have a CUDA-capable GPU installed?");
+        goto Error;
+    }
+
+    cudaStatus = cudaMalloc((void**)&v_adj_list, G.m * sizeof(unsigned int));
+    if (cudaStatus != cudaSuccess) {
+        fprintf(stderr, "cudaMalloc failed!");
+        goto Error;
+    }
+
+    cudaStatus = cudaMalloc((void**)&v_adj_begin, G.n * sizeof(unsigned int));
+    if (cudaStatus != cudaSuccess) {
+        fprintf(stderr, "cudaMalloc failed!");
+        goto Error;
+    }
+    cudaStatus = cudaMalloc((void**)&v_adj_length, G.n * sizeof(unsigned int));
+    if (cudaStatus != cudaSuccess) {
+        fprintf(stderr, "cudaMalloc failed!");
+        goto Error;
+    }
+
+    cudaStatus = cudaMemcpy(v_adj_list, G.v_adj_list.data, G.m * sizeof(unsigned int), cudaMemcpyHostToDevice);
+    if (cudaStatus != cudaSuccess) {
+        fprintf(stderr, "cudaMemcpy failed!");
+        goto Error;
+    }
+    cudaStatus = cudaMemcpy(v_adj_begin, G.v_adj_begin.data, G.n * sizeof(unsigned int), cudaMemcpyHostToDevice);
+    if (cudaStatus != cudaSuccess) {
+        fprintf(stderr, "cudaMemcpy failed!");
+        goto Error;
+    }
+    cudaStatus = cudaMemcpy(v_adj_length, G.v_adj_length.data, G.n * sizeof(unsigned int), cudaMemcpyHostToDevice);
+    if (cudaStatus != cudaSuccess) {
+        fprintf(stderr, "cudaMemcpy failed!");
+        goto Error;
+    }
+
+    
+
+    Error:
+    cudaFree(v_adj_list);
+    cudaFree(v_adj_begin);
+    cudaFree(v_adj_length);
+
+    return cudaStatus;
+}
