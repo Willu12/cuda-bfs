@@ -107,7 +107,7 @@ cudaError_t cuda_BFS_prefix_scan(const Graph& G, unsigned int start, unsigned in
         goto Error;
     }
 
-    cudaStatus = cudaMemcpy(v_adj_list, G.v_adj_list.data, G.m * sizeof(unsigned int), cudaMemcpyHostToDevice);
+    cudaStatus = cudaMemcpy(v_adj_list, &G.v_adj_list.data, G.m * sizeof(unsigned int), cudaMemcpyHostToDevice);
     if (cudaStatus != cudaSuccess) {
         fprintf(stderr, "cudaMemcpy failed!");
         goto Error;
