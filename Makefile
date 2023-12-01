@@ -10,7 +10,7 @@ CFLAGS := -std=c++11
 CUDAFLAGS := -arch=sm_61
 
 # Source files
-SRCS := main.cu graph.cpp
+SRCS := main.cu graph.cpp scan.cu kernels.cu
 
 # Target executable
 TARGET := my_cuda_program

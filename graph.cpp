@@ -7,11 +7,11 @@ Graph get_Graph_from_file(char const* path) {
 
     if (!file.is_open()) std::cout << "failed to open "  << '\n';
 
-    unsigned int n,m = 0;
-    unsigned int start_line = 0;
-    unsigned int current_line = 0;
-    unsigned int current_node = 0;
-    unsigned int start, end;
+    int n,m = 0;
+    int start_line = 0;
+    int current_line = 0;
+    int current_node = 0;
+    int start, end;
 
     while (file >> start >> end) {
         m++;
@@ -21,9 +21,9 @@ Graph get_Graph_from_file(char const* path) {
     file.clear();
     file.seekg(0, file.beg);
 
-    std::vector<unsigned int> v_adj_list(m);
-    std::vector<unsigned int> v_adj_begin(n);
-    std::vector<unsigned int> v_adj_length(n);
+    std::vector<int> v_adj_list(m);
+    std::vector<int> v_adj_begin(n);
+    std::vector<int> v_adj_length(n);
 
     while (file >> start >> end)
     {

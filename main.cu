@@ -4,43 +4,45 @@
 #include <fstream>
 #include "graph.hpp"
 #include "cuda_runtime.h"
+#include "scan.cuh"
 #include "device_launch_parameters.h"
 #include <stdio.h>
 
 
-void compute_bfs(const Graph& g, unsigned int start, unsigned int end, std::vector<unsigned int>& prev);
-void get_path(unsigned int start, unsigned int end, const std::vector<unsigned int>& prev,unsigned int n);
-void cpu_BFS(const Graph& g, unsigned int start, unsigned int end);
-cudaError_t cuda_init(const Graph&, unsigned int** , unsigned int** , unsigned int** ,unsigned int** ,
-unsigned int** ,bool** , bool** ,unsigned int** );
-cudaError_t cuda_BFS_prefix_scan(const Graph& G, unsigned int start, unsigned int end);
+void compute_bfs(const Graph& g, int start, int end, std::vector<int>& prev);
+void get_path(int start, int end, const std::vector<int>& prev,int n);
+void cpu_BFS(const Graph& g, int start, int end);
+cudaError_t cuda_init(const Graph&, int** , int** , int** ,int** ,
+int** ,bool** , int** ,int** );
+cudaError_t cuda_BFS_prefix_scan(const Graph& G, int start, int end);
 
 inline cudaError_t cuda_calloc( void *devPtr, size_t size );
-cudaError_t create_queue(bool* frontier,unsigned int** prefix_scan, unsigned int** queue,int n);
+cudaError_t create_queue(int* frontier,int** prefix_scan, int** queue,int n);
 int main() {
     Graph new_graph = get_Graph_from_file("data/california.txt");
     cpu_BFS(new_graph,732,240332);
+    cuda_BFS_prefix_scan(new_graph, 732, 240332);
 
     return 0;
 }
 
-void compute_bfs(const Graph& g, unsigned int start, unsigned int end, std::vector<unsigned int>& prev) {
+void compute_bfs(const Graph& g, int start, int end, std::vector<int>& prev) {
     std::vector<bool> visited(g.n);
-    std::queue<unsigned int> Q;
+    std::queue<int> Q;
 
     Q.push(start);
     visited[start] = true;
 
     while(!Q.empty()) {
-        unsigned int v = Q.front();
+        int v = Q.front();
         Q.pop();
 
         if(visited[end]) break;
 
-        unsigned int neighbours_count = g.v_adj_length[v];
-        unsigned int neighbours_offset = g.v_adj_begin[v];
+        int neighbours_count = g.v_adj_length[v];
+        int neighbours_offset = g.v_adj_begin[v];
         for(int i =0; i<neighbours_count; i++) {
-            unsigned int neighbour = g.v_adj_list[neighbours_offset + i];
+            int neighbour = g.v_adj_list[neighbours_offset + i];
 
             if(!visited[neighbour]) {
                 visited[neighbour] = true;
@@ -55,33 +57,33 @@ void compute_bfs(const Graph& g, unsigned int start, unsigned int end, std::vect
     }
 }
 
-void get_path(unsigned int start, unsigned int end, const std::vector<unsigned int>& prev, unsigned int n) {
-    unsigned int len = 1;
-    std::vector<unsigned int> path(n);
+void get_path(int start, int end, const std::vector<int>& prev, int n) {
+    int len = 1;
+    std::vector<int> path(n);
     path[0] = end;
-    unsigned int v = prev[end];
+    int v = prev[end];
     while(v != start) {
         path[len++] = v;
         v = prev[v];
     }
 
-    std::vector<unsigned int> reversed_path(len + 1);
+    std::vector<int> reversed_path(len + 1);
     reversed_path[0] = start;
-    for(unsigned int i = 0; i < len ; i++) {
+    for(int i = 0; i < len ; i++) {
         reversed_path[i + 1] = path[len -1  - i];
     }
 
     std::ofstream output("output.txt");
-    for(unsigned int i =1; i <= len; i++) {
+    for(int i =1; i <= len; i++) {
         output <<  reversed_path[i] << '\n';
     }
-    output.close();
+    output.close();    
 }
 
 
-void cpu_BFS(const Graph &g, unsigned int start, unsigned int end) {
-    std::vector<unsigned int> prev(g.n);
-    for(unsigned int v = 0; v<g.n; v++) {
+void cpu_BFS(const Graph &g, int start, int end) {
+    std::vector<int> prev(g.n);
+    for(int v = 0; v<g.n; v++) {
         prev[v] = UINT_MAX;
     }
 
@@ -96,18 +98,18 @@ void cpu_BFS(const Graph &g, unsigned int start, unsigned int end) {
     get_path(start,end,prev,g.n);
 }
 
-cudaError_t cuda_BFS_prefix_scan(const Graph& G, unsigned int start, unsigned int end) {
+cudaError_t cuda_BFS_prefix_scan(const Graph& G, int start, int end) {
     //tutaj trzeba zrobić wszystko 
     
     // inicjalizuje tabilice
-    unsigned int* v_adj_list;
-    unsigned int* v_adj_begin;
-    unsigned int* v_adj_length;
-    unsigned int* queue;
-    unsigned int* prev;
-    unsigned int* prefix_scan;
+    int* v_adj_list;
+    int* v_adj_begin;
+    int* v_adj_length;
+    int* queue;
+    int* prev;
+    int* prefix_scan;
     bool* visited;
-    bool* frontier;
+    int* frontier;
     cudaError_t cudaStatus;
 
     bool still_running = true;
@@ -143,8 +145,8 @@ cudaError_t cuda_BFS_prefix_scan(const Graph& G, unsigned int start, unsigned in
 }
 
 
-cudaError_t cuda_init(const Graph& G, unsigned int** v_adj_list, unsigned int** v_adj_begin, unsigned int** v_adj_length,unsigned int** queue,
-unsigned int** prev,bool** visited, bool** frontier,unsigned int** prefix_scan) { 
+cudaError_t cuda_init(const Graph& G, int** v_adj_list, int** v_adj_begin, int** v_adj_length,int** queue,
+int** prev,bool** visited, int** frontier,int** prefix_scan) { 
 
     cudaError_t cudaStatus;
     cudaStatus = cudaSetDevice(0);
@@ -153,30 +155,30 @@ unsigned int** prev,bool** visited, bool** frontier,unsigned int** prefix_scan) 
         goto Error;
     }
 
-    cudaStatus = cudaMalloc((void**)&(*v_adj_list), G.m * sizeof(unsigned int));
+    cudaStatus = cudaMalloc((void**)&(*v_adj_list), G.m * sizeof(int));
     if (cudaStatus != cudaSuccess) {
         fprintf(stderr, "cudaMalloc failed!");
         goto Error;
     }
 
-    cudaStatus = cudaMalloc((void**)&(*v_adj_begin), G.n * sizeof(unsigned int));
+    cudaStatus = cudaMalloc((void**)&(*v_adj_begin), G.n * sizeof(int));
     if (cudaStatus != cudaSuccess) {
         fprintf(stderr, "cudaMalloc failed!");
         goto Error;
     }
-    cudaStatus = cudaMalloc((void**)&(*v_adj_length), G.n * sizeof(unsigned int));
-    if (cudaStatus != cudaSuccess) {
-        fprintf(stderr, "cudaMalloc failed!");
-        goto Error;
-    }
-
-    cudaStatus = cuda_calloc((void**)&(*queue), G.n * sizeof(unsigned int));
+    cudaStatus = cudaMalloc((void**)&(*v_adj_length), G.n * sizeof(int));
     if (cudaStatus != cudaSuccess) {
         fprintf(stderr, "cudaMalloc failed!");
         goto Error;
     }
 
-    cudaStatus = cuda_calloc((void**)&(*prev), G.n * sizeof(unsigned int));
+    cudaStatus = cuda_calloc((void**)&(*queue), G.n * sizeof(int));
+    if (cudaStatus != cudaSuccess) {
+        fprintf(stderr, "cudaMalloc failed!");
+        goto Error;
+    }
+
+    cudaStatus = cuda_calloc((void**)&(*prev), G.n * sizeof(int));
     if (cudaStatus != cudaSuccess) {
         fprintf(stderr, "cudaMalloc failed!");
         goto Error;
@@ -186,29 +188,29 @@ unsigned int** prev,bool** visited, bool** frontier,unsigned int** prefix_scan) 
         fprintf(stderr, "cudaMalloc failed!");
         goto Error;
     }
-    cudaStatus = cuda_calloc((void**)&(*visited), G.n * sizeof(bool));
+    cudaStatus = cuda_calloc((void**)&(*visited), G.n * sizeof(int));
     if (cudaStatus != cudaSuccess) {
         fprintf(stderr, "cudaMalloc failed!");
         goto Error;
     }
 
-    cudaStatus = cuda_calloc((void**)&(*prefix_scan), G.n * sizeof(unsigned int));
+    cudaStatus = cuda_calloc((void**)&(*prefix_scan), G.n * sizeof(int));
     if (cudaStatus != cudaSuccess) {
         fprintf(stderr, "cudaMalloc failed!");
         goto Error;
     }
 
-    cudaStatus = cudaMemcpy(*v_adj_list, G.v_adj_list.data(), G.m * sizeof(unsigned int), cudaMemcpyHostToDevice);
+    cudaStatus = cudaMemcpy(*v_adj_list, G.v_adj_list.data(), G.m * sizeof(int), cudaMemcpyHostToDevice);
     if (cudaStatus != cudaSuccess) {
         fprintf(stderr, "cudaMemcpy failed!");
         goto Error;
     }
-    cudaStatus = cudaMemcpy(*v_adj_begin, G.v_adj_begin.data(), G.n * sizeof(unsigned int), cudaMemcpyHostToDevice);
+    cudaStatus = cudaMemcpy(*v_adj_begin, G.v_adj_begin.data(), G.n * sizeof(int), cudaMemcpyHostToDevice);
     if (cudaStatus != cudaSuccess) {
         fprintf(stderr, "cudaMemcpy failed!");
         goto Error;
     }
-    cudaStatus = cudaMemcpy(*v_adj_length, G.v_adj_length.data(), G.n * sizeof(unsigned int), cudaMemcpyHostToDevice);
+    cudaStatus = cudaMemcpy(*v_adj_length, G.v_adj_length.data(), G.n * sizeof(int), cudaMemcpyHostToDevice);
     if (cudaStatus != cudaSuccess) {
         fprintf(stderr, "cudaMemcpy failed!");
         goto Error;
@@ -236,17 +238,25 @@ inline cudaError_t cuda_calloc( void *devPtr, size_t size )
   return err;
 }
 
-cudaError_t prefix_scan(bool* frontier, unsigned int** prefix_scan, int n) {
+cudaError_t prefix_scan(int* frontier, int** prefix_scan, int n) {
     
     //clear previous prefix_scan
-    cudaError_t err = cudaMemset( *(void**)*prefix_scan, 0, n * sizeof(unsigned int) );
+    cudaError_t err = cudaMemset( *(void**)*prefix_scan, 0, n * sizeof(int) );
+    if(err) return err;
     //create kernel
+    scan(*prefix_scan,frontier,n);
+
+    //printf scan
+    for(int i =0; i<n; i++ ){
+        std::cout<<prefix_scan[i];
+    }
+
     return err;
 }
 
 
-cudaError_t create_queue(bool* frontier,unsigned int** prefix_scan, unsigned int** queue,int n) {
+cudaError_t create_queue(int* frontier,int** prefix_scan, int** queue,int n) {
     //clear previous queue
-        cudaError_t err = cudaMemset( *(void**)*queue, 0, n * sizeof(unsigned int) );
+        cudaError_t err = cudaMemset( *(void**)*queue, 0, n * sizeof(int) );
     return err;
 }
