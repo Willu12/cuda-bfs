@@ -1,4 +1,6 @@
 #include "graph.hpp"
+#include <iostream>
+#include <fstream>
 
 Graph get_Graph_from_file(char const* path) {
     std::ifstream file(path,std::ios::binary);
