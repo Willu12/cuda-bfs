@@ -1,6 +1,7 @@
 #include "cuda_runtime.h"
+#include "stdio.h"
 #include "device_launch_parameters.h"
-#include <device_functions.h>
+//#include <device_functions.h>
 
 #include "kernels.cuh"
 
@@ -147,4 +148,36 @@ __global__ void add(int *output, int length, int *n1, int *n2) {
 	int blockOffset = blockID * length;
 
 	output[blockOffset + threadID] += n1[blockID] + n2[blockID];
+}
+
+__global__ void queue_from_prescan(int* queue,int* prefix_sum,int* frontier,int n) {
+
+    int tid = blockIdx.x * blockDim.x + threadIdx.x;
+    if(tid >= n) return;
+ 	if (tid < n && frontier[tid]) queue[prefix_sum[tid] + 1] = tid;
+
+ 	//size of queue
+ 	if (tid == n - 1) queue[0] = prefix_sum[tid] + (int) frontier[tid];
+
+}
+
+__global__ void bfs_cuda_prescan_iter(int* v_adj_list,int* v_adj_begin,int* v_adj_length,int* queue, int* frontier, bool* visited,int *prev ,int end, bool* still_running) {
+	int tid = blockIdx.x * blockDim.x + threadIdx.x;
+
+	int v = queue[tid + 1];
+	int offset = v_adj_begin[v];
+	for(int i =0; i<v_adj_length[v]; i++) {
+		int u = v_adj_list[offset + i];
+		if(!visited[u]) frontier[u] = 1;
+		visited[u] = 1;
+		prev[u] = v;
+		if(u == end){
+			*still_running = true;
+			break;
+		}
+	}
+}
+
+__global__ void init_frontier(int* frontier, int start) {
+    frontier[start] = 1;
 }
