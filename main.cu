@@ -13,20 +13,20 @@
 
 
 void compute_bfs(const Graph& g, int start, int end, std::vector<int>& prev);
-void get_path(int start, int end, const std::vector<int>& prev,int n);
+void get_path(int start, int end, const std::vector<int>& prev,int n, const std::string& fileName);
 void cpu_BFS(const Graph& g, int start, int end);
 cudaError_t cuda_init(const Graph& G, int** v_adj_list, int** v_adj_begin, int** v_adj_length,int** queue,
                       int** prev,bool** visited, int** frontier,int** prefix_scan);
 void cuda_free_all(int* v_adj_list, int* v_adj_begin, int* v_adj_length,int* queue,
 int* prev,bool* visited, int* frontier,int* prefix_scan);
 cudaError_t cuda_BFS_prefix_scan(const Graph& G, int start, int end);
-void cuda_prefix_queue_iter(int* v_adj_list, int* v_adj_begin, int* v_adj_length,int* queue,bool* visited,int*frontier,int* prev,int end,bool* d_running,bool* h_running,int n);
+void cuda_prefix_queue_iter(int* v_adj_list, int* v_adj_begin, int* v_adj_length,int* queue,bool* visited,int*frontier,int* prev,int end,bool* d_running,bool* h_running);
 inline cudaError_t cuda_calloc( void *devPtr, size_t size );
 cudaError_t create_queue(int* frontier,int** prefix_scan, int** queue,int n);
 int main() {
-    Graph new_graph = get_Graph_from_file("data/simple.txt");
-    cpu_BFS(new_graph,0,3);
-    cuda_BFS_prefix_scan(new_graph, 0, 3);
+    Graph new_graph = get_Graph_from_file("data/california.txt");
+    cpu_BFS(new_graph,0,1433232);
+    cuda_BFS_prefix_scan(new_graph, 0, 1433232);
 
     return 0;
 }
@@ -62,7 +62,7 @@ void compute_bfs(const Graph& g, int start, int end, std::vector<int>& prev) {
     }
 }
 
-void get_path(int start, int end, const std::vector<int>& prev, int n) {
+void get_path(int start, int end, int *prev, int n,const std::string& fileName) {
     int len = 1;
     std::vector<int> path(n);
     path[0] = end;
@@ -78,7 +78,7 @@ void get_path(int start, int end, const std::vector<int>& prev, int n) {
         reversed_path[i + 1] = path[len -1  - i];
     }
 
-    std::ofstream output("output.txt");
+    std::ofstream output(fileName);
     for(int i =1; i <= len; i++) {
         output <<  reversed_path[i] << '\n';
     }
@@ -92,21 +92,18 @@ void cpu_BFS(const Graph &g, int start, int end) {
         prev[v] = UINT_MAX;
     }
 
-    std::clock_t start_clock;
     double duration;
-    start_clock = std::clock();
+    std::clock_t start_clock = std::clock();
+    //start_clock = std::clock();
     compute_bfs(g,start,end,prev);
     duration = (double) (std::clock() - start_clock) /  (double) CLOCKS_PER_SEC;
 
     std::cout<<"cpu bfs took: "<<duration <<" seconds\n";
 
-    get_path(start,end,prev,g.n);
+    get_path(start,end,prev.data(),g.n,"cpu_output.txt");
 }
 
 cudaError_t cuda_BFS_prefix_scan(const Graph& G, int start, int end) {
-    //tutaj trzeba zrobić wszystko 
-    
-    // inicjalizuje tabilice
     int* v_adj_list = nullptr;
     int* v_adj_begin = nullptr;
     int* v_adj_length = nullptr;
@@ -117,62 +114,40 @@ cudaError_t cuda_BFS_prefix_scan(const Graph& G, int start, int end) {
     int* frontier = nullptr;
     cudaError_t cudaStatus;
 
-    bool running = true;
-    bool* d_running;
-    cudaMalloc(&d_running,sizeof(bool));
+    double duration;
+    std::clock_t start_clock = std::clock();
+
+    bool stop = false;
+    bool* d_stop;
+    cudaMalloc(&d_stop,sizeof(bool));
 
     cudaStatus = cuda_init(G,&v_adj_list,&v_adj_begin,&v_adj_length,&queue,&prev,&visited,&frontier,&prefix_scan);
     if (cudaStatus != cudaSuccess) {
         fprintf(stderr, "cuda init failed");
     }
-
-    // cudaMalloc((void**)&(frontier), G.n * sizeof(int));
-   //cuda_calloc(&frontier,G.n * sizeof(int));
-    //po przekopiowaniu danych mamy BFS
-    //byśmy chcieli mieć funkcje która policzymy nam kolejke dla zadanego 
-    //frontier[0] = true;
-    //cudaStatus = cudaMemset((void**)&frontier, 0, G.n * sizeof(int));
     init_frontier<<<1,1>>>(frontier,start);
-    int* currentQueue = (int*)malloc(sizeof(int) * G.n);
-    cudaMemcpy(currentQueue, queue, G.n * sizeof(int), cudaMemcpyDeviceToHost);
-    std::cout<<"start queue: [";
-    for(int i =0; i<G.n; i++ ) {
-        std::cout <<currentQueue[i] <<" ";
-    }
-    std::cout<< "]\n";
 
     //main loop
-
-    while(running) {
+    while(!stop) {
         //create queue
         create_queue(frontier,&prefix_scan,&queue,G.n);
-        cudaMemcpy(currentQueue, queue, G.n * sizeof(int), cudaMemcpyDeviceToHost);
-        std::cout<<"current queue: [";
-        for(int i =0; i<G.n; i++ ) {
-            std::cout <<currentQueue[i] <<" ";
-        }
-        std::cout<< "]\n";
-
         //clear frontier
-        cudaStatus = cudaMemset((void**)&frontier, 0, G.n * sizeof(int));
-
-       // cuda_calloc(frontier,G.n * sizeof(int));
-        
-        //iterate through queue
-        cuda_prefix_queue_iter(v_adj_list,v_adj_begin,v_adj_length,queue,visited,frontier,prev,end,d_running,&running,G.n);
-
-        //debug
-
-
-        //running = false;
+        cudaStatus = cudaMemset(frontier, 0, G.n * sizeof(int));
+        //bfs layer scan
+        cuda_prefix_queue_iter(v_adj_list,v_adj_begin,v_adj_length,queue,visited,frontier,prev,end,d_stop,&stop);
     }
 
-
+    //copy prev array to cpu
+    int* h_prev = (int*)malloc(G.n * sizeof(int));
+    cudaMemcpy(h_prev,prev,G.n * sizeof(int),cudaMemcpyDeviceToHost);
     cuda_free_all(v_adj_list,v_adj_begin, v_adj_length, queue, prev, visited, frontier, prefix_scan);
 
-    
-    //printf("krzeslo");
-    
+    duration = (double) (std::clock() - start_clock) /  (double) CLOCKS_PER_SEC;
+    std::cout<<"gpu bfs with prefix_scan took: "<<duration <<" seconds\n";
+
+
+    get_path(start,end,h_prev,G.n,"gpu_output.txt");
+
     return cudaStatus;
 }
 
@@ -272,8 +247,11 @@ inline cudaError_t cuda_calloc( void *devPtr, size_t size )
 cudaError_t cuda_prefix_scan(int* frontier, int** prefix_scan, int n) {
     
     //clear previous prefix_scan
+
     cudaError_t err = cudaMemset( *(void**)prefix_scan, 0, n * sizeof(int) );
+
     if(err != cudaSuccess) return err;
+
     scan(*prefix_scan,frontier,n);
 
     return err;
@@ -289,12 +267,11 @@ void queue_from_prefix(int* prefix_scan, int* queue,int* frontier, int n) {
 	//cudaMalloc((void **)&d_sums, blocks * sizeof(int));
 	//cudaMalloc((void **)&d_incr, blocks * sizeof(int));
 
-	//prescan_large<<<blocks, THREADS_PER_BLOCK, 2 * sharedMemArraySize>>>(d_out, d_in, ELEMENTS_PER_BLOCK, d_sums);
+	//preScan_large<<<blocks, THREADS_PER_BLOCK, 2 * sharedMemArraySize>>>(d_out, d_in, ELEMENTS_PER_BLOCK, d_sums);
 	
 
 	//const int sumsArrThreadsNeeded = (blocks + 1) / 2;
 	//scanLargeDeviceArray(d_incr, d_sums, blocks);
-
 
     queue_from_prescan<<<blocks,512>>>(queue, prefix_scan, frontier,n);
 
@@ -306,21 +283,32 @@ void queue_from_prefix(int* prefix_scan, int* queue,int* frontier, int n) {
 cudaError_t create_queue(int* frontier,int** prefix_scan, int** queue,int n) {
     //clear previous queue
     cudaError_t err;
+
     if(cudaSuccess != (err = cudaMemset( *(void**)queue, 0, n * sizeof(int)) )) return err;
+
     if(cudaSuccess != (err = cuda_prefix_scan(frontier,prefix_scan,n))) return err;
 
     queue_from_prefix(*prefix_scan,*queue,frontier,n);
-
-    //teraz chcemy jakby 
-
     return err;
 }
 
-void cuda_prefix_queue_iter(int* v_adj_list, int* v_adj_begin, int* v_adj_length,int* queue,bool* visited,int*frontier,int* prev,int end,bool* d_running,bool* h_running,int n) {
-    int ELEMENTS_PER_BLOCK = 1024;
-    const int blocks = n / ELEMENTS_PER_BLOCK;
-    bfs_cuda_prescan_iter<<<blocks,512>>>(v_adj_list,v_adj_begin,v_adj_length,queue,frontier,visited,prev,end,d_running);
-    cudaMemcpy(h_running, d_running, sizeof(bool), cudaMemcpyDeviceToHost);
+void cuda_prefix_queue_iter(int* v_adj_list, int* v_adj_begin, int* v_adj_length,int* queue,bool* visited,int*frontier,int* prev,int end,bool* d_stop,bool* h_stop) {
+    //get amount of vertices you have to iterate
+    const int ELEMENTS_PER_BLOCK = 512;
+    int queue_length = 0;
+
+    cudaMemcpy(&queue_length,queue,sizeof(int),cudaMemcpyDeviceToHost);
+    if(queue_length == 0) {
+        *h_stop = true;
+        return;
+    }
+    int blocks = queue_length / ELEMENTS_PER_BLOCK;
+    int remainder = queue_length - blocks * ELEMENTS_PER_BLOCK;
+
+
+    bfs_cuda_prescan_iter<<<blocks,ELEMENTS_PER_BLOCK>>>(v_adj_list,v_adj_begin,v_adj_length,queue,frontier,visited,prev,end,d_stop,0);
+    bfs_cuda_prescan_iter<<<1,remainder>>>(v_adj_list,v_adj_begin,v_adj_length,queue,frontier,visited,prev,end,d_stop,blocks * ELEMENTS_PER_BLOCK);
+    cudaMemcpy(h_stop, d_stop, sizeof(bool), cudaMemcpyDeviceToHost);
 }
 
 void cuda_free_all(int* v_adj_list, int* v_adj_begin, int* v_adj_length,int* queue,

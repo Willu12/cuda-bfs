@@ -4,6 +4,7 @@
 
 #include "kernels.cuh"
 #include "scan.cuh"
+#include "stdio.h"
 
 #define checkCudaError(o, l) _checkCudaError(o, l, __func__)\
 
@@ -61,14 +62,15 @@ float scan(int *output, int *input, int length) {
 	cudaEventCreate(&stop);
 	cudaEventRecord(start);
 
-	if (length > ELEMENTS_PER_BLOCK) {
+    if (length > ELEMENTS_PER_BLOCK) {
 		scanLargeDeviceArray(output, input, length);
 	}
 	else {
 		scanSmallDeviceArray(output, input, length);
 	}
 
-	// end timer
+
+    // end timer
 	cudaEventRecord(stop);
 	cudaEventSynchronize(stop);
 	float elapsedTime = 0;
@@ -90,13 +92,12 @@ void scanLargeDeviceArray(int *d_out, int *d_in, int length) {
 	else {
 		// perform a large scan on a compatible multiple of elements
 		int lengthMultiple = length - remainder;
-		scanLargeEvenDeviceArray(d_out, d_in, lengthMultiple);
-
+        scanLargeEvenDeviceArray(d_out, d_in, lengthMultiple);
 		// scan the remaining elements and add the (inclusive) last element of the large scan to this
 		int *startOfOutputArray = &(d_out[lengthMultiple]);
 		scanSmallDeviceArray(startOfOutputArray, &(d_in[lengthMultiple]), remainder);
 
-		add<<<1, remainder>>>(startOfOutputArray, remainder, &(d_in[lengthMultiple - 1]), &(d_out[lengthMultiple - 1]));
+        add<<<1, remainder>>>(startOfOutputArray, remainder, &(d_in[lengthMultiple - 1]), &(d_out[lengthMultiple - 1]));
 	}
 }
 
@@ -113,13 +114,24 @@ void scanLargeEvenDeviceArray(int *d_out, int *d_in, int length) {
 	cudaMalloc((void **)&d_sums, blocks * sizeof(int));
 	cudaMalloc((void **)&d_incr, blocks * sizeof(int));
 
-	prescan_large<<<blocks, THREADS_PER_BLOCK, 2 * sharedMemArraySize>>>(d_out, d_in, ELEMENTS_PER_BLOCK, d_sums);
-	
 
-	//const int sumsArrThreadsNeeded = (blocks + 1) / 2;
-	scanLargeDeviceArray(d_incr, d_sums, blocks);
+    prescan_large<<<blocks, THREADS_PER_BLOCK, 2 * sharedMemArraySize>>>(d_out, d_in, ELEMENTS_PER_BLOCK, d_sums);
 
-	add<<<blocks, ELEMENTS_PER_BLOCK>>>(d_out, ELEMENTS_PER_BLOCK, d_incr);
+
+    const int sumsArrThreadsNeeded = (blocks + 1) / 2;
+    //printf("ch22uk\n");
+
+    if (sumsArrThreadsNeeded > THREADS_PER_BLOCK) {
+        // perform a large scan on the sums arr
+        scanLargeDeviceArray(d_incr, d_sums, blocks);
+    }
+    else {
+        // only need one block to scan sums arr so can use small scan
+        scanSmallDeviceArray(d_incr, d_sums, blocks);
+    }
+
+
+    add<<<blocks, ELEMENTS_PER_BLOCK>>>(d_out, ELEMENTS_PER_BLOCK, d_incr);
 
 	cudaFree(d_sums);
 	cudaFree(d_incr);

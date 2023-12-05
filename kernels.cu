@@ -153,26 +153,33 @@ __global__ void add(int *output, int length, int *n1, int *n2) {
 __global__ void queue_from_prescan(int* queue,int* prefix_sum,int* frontier,int n) {
 
     int tid = blockIdx.x * blockDim.x + threadIdx.x;
-    if(tid >= n) return;
- 	if (tid < n && frontier[tid]) queue[prefix_sum[tid] + 1] = tid;
+    int num_threads = blockDim.x * gridDim.x;
+
+    for(int v = 0; v < n; v+=num_threads){
+        int vertex = v + tid;
+        if (vertex < n && frontier[vertex]) queue[prefix_sum[vertex] + 1] = vertex;
+
+    }
 
  	//size of queue
- 	if (tid == n - 1) queue[0] = prefix_sum[tid] + (int) frontier[tid];
+ 	if (tid == 0) queue[0] = prefix_sum[n -1] + (int) frontier[n -1 ];
 
 }
 
-__global__ void bfs_cuda_prescan_iter(int* v_adj_list,int* v_adj_begin,int* v_adj_length,int* queue, int* frontier, bool* visited,int *prev ,int end, bool* still_running) {
-	int tid = blockIdx.x * blockDim.x + threadIdx.x;
+__global__ void bfs_cuda_prescan_iter(int* v_adj_list,int* v_adj_begin,int* v_adj_length,int* queue, int* frontier, bool* visited,int *prev ,int end, bool* stop,int tid_offset) {
+	int tid = blockIdx.x * blockDim.x + threadIdx.x + tid_offset;
 
 	int v = queue[tid + 1];
 	int offset = v_adj_begin[v];
 	for(int i =0; i<v_adj_length[v]; i++) {
 		int u = v_adj_list[offset + i];
-		if(!visited[u]) frontier[u] = 1;
-		visited[u] = 1;
+        if(visited[u]) continue;
+       // printf("neighbour of %d is %d\n",v,u);
+        frontier[u] = 1;
+		visited[u] = true;
 		prev[u] = v;
 		if(u == end){
-			*still_running = true;
+			*stop = true;
 			break;
 		}
 	}
