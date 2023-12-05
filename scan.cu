@@ -1,14 +1,15 @@
 #include <stdlib.h>
-#include "cuda_runtime.h"
+//#include "cuda_runtime.h"
 #include "device_launch_parameters.h"
 
 #include "kernels.cuh"
 #include "scan.cuh"
 
-#define checkCudaError(o, l) _checkCudaError(o, l, __func__)
+#define checkCudaError(o, l) _checkCudaError(o, l, __func__)\
 
 int THREADS_PER_BLOCK = 512;
 int ELEMENTS_PER_BLOCK = THREADS_PER_BLOCK * 2;
+
 
 int nextPowerOfTwo(int x) {
 	int power = 1;
@@ -115,7 +116,7 @@ void scanLargeEvenDeviceArray(int *d_out, int *d_in, int length) {
 	prescan_large<<<blocks, THREADS_PER_BLOCK, 2 * sharedMemArraySize>>>(d_out, d_in, ELEMENTS_PER_BLOCK, d_sums);
 	
 
-	const int sumsArrThreadsNeeded = (blocks + 1) / 2;
+	//const int sumsArrThreadsNeeded = (blocks + 1) / 2;
 	scanLargeDeviceArray(d_incr, d_sums, blocks);
 
 	add<<<blocks, ELEMENTS_PER_BLOCK>>>(d_out, ELEMENTS_PER_BLOCK, d_incr);
