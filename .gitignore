@@ -1,5 +1,5 @@
 /.idea
 cuda_bfs
-output.txt
+output/*
 /data
 .vscode/

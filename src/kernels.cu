@@ -1,6 +1,5 @@
-
-
 #include "kernels.cuh"
+#include "stdio.h"
 
 #define SHARED_MEMORY_BANKS 32
 #define LOG_MEM_BANKS 5
@@ -161,14 +160,16 @@ __global__ void queue_from_prescan(int* queue,int* prefix_sum,int* frontier,int 
  	if (tid == 0) queue[0] = prefix_sum[n -1] + (int) frontier[n -1];
 }
 
-__global__ void bfs_cuda_prescan_iter(int* v_adj_list,int* v_adj_begin,int* v_adj_length,int* queue, int* frontier, bool* visited,int *prev ,int end, bool* stop,int tid_offset) {
+__global__ void bfs_cuda_prescan_iter(int* v_adj_list,int* v_adj_begin,int* v_adj_length,int* queue, int* frontier, bool* visited,
+									  int *prev ,int end, bool* stop,int tid_offset,int n) {
 	int tid = blockIdx.x * blockDim.x + threadIdx.x + tid_offset;
-
+	if(tid >= n) return;
 	int v = queue[tid + 1];
 	int offset = v_adj_begin[v];
 	for(int i =0; i<v_adj_length[v]; i++) {
        // if(visited[end]) break;
 		int u = v_adj_list[offset + i];
+		if(u >= n) printf("u = %d a maks n= %d\n",u,n-1);
         if(visited[u]) continue;
        // printf("neighbour of %d is %d\n",v,u);
         frontier[u] = 1;

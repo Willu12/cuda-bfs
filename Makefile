@@ -7,7 +7,7 @@ NVCC := nvcc
 CFLAGS := -std=c++11
 
 # CUDA flags
-CUDAFLAGS := -arch=sm_61
+CUDAFLAGS := -lineinfo
 
 # Source files
 SRCS := src/main.cu src/graph.cpp src/scan.cu src/kernels.cu src/bfs_prefix_scan.cu src/bfs_layer_count.cu
@@ -17,7 +17,7 @@ TARGET := cuda_bfs
 
 # Build executable
 $(TARGET): $(SRCS)
-	$(NVCC) $(CFLAGS) $^ -o $(TARGET)
+	$(NVCC) $(CFLAGS) $(CUDAFLAGS) $^ -o $(TARGET)
 
 # Clean rule
 clean:
