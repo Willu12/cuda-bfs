@@ -5,7 +5,7 @@
 #include "kernels.cuh"
 #include "stdio.h"
 
-float scan(int *output, int *input, int length);
+void scan(int *output, int *input, int length);
 
 void scanLargeDeviceArray(int *output, int *input, int length);
 void scanSmallDeviceArray(int *d_out, int *d_in, int length);
