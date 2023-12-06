@@ -12,14 +12,8 @@ Graph get_Graph_from_file(char const* path) {
     int current_node = 0;
     int start, end;
 
-    while (file >> start >> end) {
-        m++;
-    }
-
-    n = start;
-    file.clear();
-    file.seekg(0, file.beg);
-
+    //first line of code is n and m
+    file >> n >> m;
     std::vector<int> v_adj_list(m);
     std::vector<int> v_adj_begin(n);
     std::vector<int> v_adj_length(n);
