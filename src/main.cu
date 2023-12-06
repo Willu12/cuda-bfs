@@ -107,14 +107,12 @@ void cpu_BFS(const Graph &g, int start, int end) {
 }
 
 cudaError_t cuda_BFS_prefix_scan(const Graph& G, int start, int end) {
-    int* v_adj_list = nullptr;
-    int* v_adj_begin = nullptr;
-    int* v_adj_length = nullptr;
-    int* queue = nullptr;
-    int* prev = nullptr;
-    int* prefix_scan = nullptr;
-    bool* visited = nullptr;
-    int* frontier = nullptr;
+    int* v_adj_list, *v_adj_begin, *v_adj_length;
+    int* queue;
+    int* prev;
+    int* prefix_scan;
+    bool* visited;
+    int* frontier;
     cudaError_t cudaStatus;
 
     double duration;
