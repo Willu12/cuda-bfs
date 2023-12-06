@@ -5,7 +5,6 @@
 int THREADS_PER_BLOCK = 512;
 int ELEMENTS_PER_BLOCK = THREADS_PER_BLOCK * 2;
 
-
 int nextPowerOfTwo(int x) {
 	int power = 1;
 	while (power < x) {

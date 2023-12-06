@@ -4,13 +4,12 @@ cudaError_t cuda_init(const Graph& G, int** v_adj_list, int** v_adj_begin, int**
                       int** prev,bool** visited, int** frontier,int** prefix_scan) {
 
     cudaError_t cudaStatus;
-    /*
+
     cudaStatus = cudaSetDevice(0);
     if (cudaStatus != cudaSuccess) {
         fprintf(stderr, "cudaSetDevice failed!  Do you have a CUDA-capable GPU installed?");
         goto Error;
     }
-    */
 
     cudaStatus = cudaMalloc((void**)v_adj_list, G.m * sizeof(int));
     if (cudaStatus != cudaSuccess) {

@@ -39,7 +39,7 @@ void cuda_BFS_frontier_numbers(const Graph& G, int start, int end) {
     int* result;
     int* prev;
 
-    int* h_result = new int[G.n];
+    int* h_result = (int*)malloc(G.n * sizeof(int));
 
     bool* running;
     int kernel_runs = 0;
@@ -98,4 +98,6 @@ void cuda_BFS_frontier_numbers(const Graph& G, int start, int end) {
     cudaMemcpy(h_prev,prev,G.n * sizeof(int),cudaMemcpyDeviceToHost);
     get_path(start,end,h_prev,G.n,"output/gpu_output_frontier.txt");
     free(h_prev);
+    free(h_result);
+    free(h_running);
 }
