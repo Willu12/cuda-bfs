@@ -17,7 +17,7 @@ TARGET := my_cuda_program
 
 # Build executable
 $(TARGET): $(SRCS)
-	$(NVCC) $(CFLAGS) $(CUDAFLAGS) $^ -o $(TARGET)
+	$(NVCC) $(CFLAGS) $^ -o $(TARGET)
 
 # Clean rule
 clean:
