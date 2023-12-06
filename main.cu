@@ -23,10 +23,18 @@ cudaError_t cuda_BFS_prefix_scan(const Graph& G, int start, int end);
 void cuda_prefix_queue_iter(int* v_adj_list, int* v_adj_begin, int* v_adj_length,int* queue,bool* visited,int*frontier,int* prev,int end,bool* d_running,bool* h_running);
 inline cudaError_t cuda_calloc( void *devPtr, size_t size );
 cudaError_t create_queue(int* frontier,int** prefix_scan, int** queue,int n);
-int main() {
-    Graph new_graph = get_Graph_from_file("data/california.txt");
-    cpu_BFS(new_graph,0,1433232);
-    cuda_BFS_prefix_scan(new_graph, 0, 1433232);
+int main(int argc, char** argv) {
+    char *path = "data/california.txt";
+    int start = 120;
+    int end = 1132332;
+    if(argc == 4) {
+        path = argv[1];
+        start = atoi(argv[2]);
+        end = atoi(argv[3]);
+    }
+    Graph new_graph = get_Graph_from_file(path);
+    cpu_BFS(new_graph,start,end);
+    cuda_BFS_prefix_scan(new_graph, start, end);
 
     return 0;
 }
@@ -125,16 +133,23 @@ cudaError_t cuda_BFS_prefix_scan(const Graph& G, int start, int end) {
     if (cudaStatus != cudaSuccess) {
         fprintf(stderr, "cuda init failed");
     }
-    init_frontier<<<1,1>>>(frontier,start);
+    int* host_queue = (int*)malloc(sizeof(int) * 2);
+    host_queue[0] = 1;
+    host_queue[1] = start;
+
+    cudaMemcpy(queue,host_queue,2 * sizeof(int),cudaMemcpyHostToDevice);
+    free(host_queue);
 
     //main loop
     while(!stop) {
+
+        //iter
+        cuda_prefix_queue_iter(v_adj_list,v_adj_begin,v_adj_length,queue,visited,frontier,prev,end,d_stop,&stop);
         //create queue
         create_queue(frontier,&prefix_scan,&queue,G.n);
         //clear frontier
         cudaStatus = cudaMemset(frontier, 0, G.n * sizeof(int));
         //bfs layer scan
-        cuda_prefix_queue_iter(v_adj_list,v_adj_begin,v_adj_length,queue,visited,frontier,prev,end,d_stop,&stop);
     }
 
     //copy prev array to cpu
@@ -147,7 +162,7 @@ cudaError_t cuda_BFS_prefix_scan(const Graph& G, int start, int end) {
 
 
     get_path(start,end,h_prev,G.n,"gpu_output.txt");
-
+    free(h_prev);
     return cudaStatus;
 }
 
