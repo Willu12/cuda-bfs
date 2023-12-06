@@ -4,7 +4,7 @@
 NVCC := nvcc
 
 # Compiler flags
-CFLAGS := -std=c++11
+CFLAGS := -std=c++17
 
 # CUDA flags
 CUDAFLAGS := -arch=sm_61
