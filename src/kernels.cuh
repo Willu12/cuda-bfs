@@ -1,3 +1,7 @@
+#pragma once
+#include "cuda_runtime.h"
+#include "device_launch_parameters.h"
+#include <device_functions.h>
 
 __global__ void prescan_arbitrary(int *g_odata, int *g_idata, int n, int powerOfTwo);
 __global__ void prescan_large(int *g_odata, int *g_idata, int n, int* sums);

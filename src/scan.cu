@@ -1,10 +1,4 @@
-#include <stdlib.h>
-//#include "cuda_runtime.h"
-#include "device_launch_parameters.h"
-
-#include "kernels.cuh"
 #include "scan.cuh"
-#include "stdio.h"
 
 #define checkCudaError(o, l) _checkCudaError(o, l, __func__)\
 
