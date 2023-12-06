@@ -159,15 +159,13 @@ __global__ void queue_from_prescan(int* queue,int* prefix_sum,int* frontier,int 
 }
 
 __global__ void bfs_cuda_prescan_iter(int* v_adj_list,int* v_adj_begin,int* v_adj_length,int* queue, int* frontier, bool* visited,
-									  int *prev ,int end, bool* stop,int tid_offset,int n) {
+									  int *prev ,int end, bool* stop,int tid_offset) {
 	int tid = blockIdx.x * blockDim.x + threadIdx.x + tid_offset;
-	if(tid >= n) return;
 	int v = queue[tid + 1];
 	int offset = v_adj_begin[v];
 	for(int i =0; i<v_adj_length[v]; i++) {
        // if(visited[end]) break;
 		int u = v_adj_list[offset + i];
-		if(u >= n)
         if(visited[u]) continue;
         frontier[u] = 1;
 		visited[u] = true;

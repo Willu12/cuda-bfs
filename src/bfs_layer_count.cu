@@ -13,7 +13,6 @@ __global__ void kernel_cuda_frontier_numbers(int *v_adj_list, int *v_adj_begin, 
             for (int n = 0; n < v_adj_length[vertex]; n++)
             {
                 int neighbor = v_adj_list[v_adj_begin[vertex] + n];
-                if(neighbor >= num_vertices)
                 if (result[neighbor] == num_vertices + 1)
                 {
                     result[neighbor] = iteration + 1;

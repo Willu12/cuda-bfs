@@ -128,9 +128,9 @@ void cuda_prefix_queue_iter(int* v_adj_list, int* v_adj_begin, int* v_adj_length
     int remainder = queue_length - blocks * ELEMENTS_PER_BLOCK;
 
     if(blocks > 0) {
-        bfs_cuda_prescan_iter<<<blocks,ELEMENTS_PER_BLOCK>>>(v_adj_list,v_adj_begin,v_adj_length,queue,frontier,visited,prev,end,d_stop,0,n);
+        bfs_cuda_prescan_iter<<<blocks,ELEMENTS_PER_BLOCK>>>(v_adj_list,v_adj_begin,v_adj_length,queue,frontier,visited,prev,end,d_stop,0);
     }
-    bfs_cuda_prescan_iter<<<1,remainder>>>(v_adj_list,v_adj_begin,v_adj_length,queue,frontier,visited,prev,end,d_stop,blocks * ELEMENTS_PER_BLOCK,n);
+    bfs_cuda_prescan_iter<<<1,remainder>>>(v_adj_list,v_adj_begin,v_adj_length,queue,frontier,visited,prev,end,d_stop,blocks * ELEMENTS_PER_BLOCK);
     
     cudaMemcpy(h_stop, d_stop, sizeof(bool), cudaMemcpyDeviceToHost);
 }
