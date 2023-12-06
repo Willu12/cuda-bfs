@@ -4,9 +4,7 @@
 #include <ctime>
 #include <fstream>
 #include "algorithm"
-//#include "kernels.cuh"
 #include "bfs_prefix_scan.cuh"
-//#include "graph.hpp"
 #include "cuda_runtime.h"
 #include "device_launch_parameters.h"
 #include <stdio.h>
