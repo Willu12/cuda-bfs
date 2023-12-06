@@ -7,6 +7,7 @@
 #include "cuda_runtime.h"
 #include "scan.cuh"
 #include "device_launch_parameters.h"
+#include "bfs_layer_count.cuh"
 
 
 
@@ -24,6 +25,7 @@ int main(int argc, char** argv) {
     Graph new_graph = get_Graph_from_file(path);
     cpu_BFS(new_graph,start,end);
     cuda_BFS_prefix_scan(new_graph, start, end);
+    cuda_BFS_frontier_numbers(new_graph,start,end);
 
     return 0;
 }
@@ -75,7 +77,3 @@ void cpu_BFS(const Graph &g, int start, int end) {
 
     get_path(start,end,prev.data(),g.n,"cpu_output.txt");
 }
-
-
-
-
