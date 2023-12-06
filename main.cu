@@ -25,7 +25,7 @@ void cuda_prefix_queue_iter(int* v_adj_list, int* v_adj_begin, int* v_adj_length
 inline cudaError_t cuda_calloc( void *devPtr, size_t size );
 cudaError_t create_queue(int* frontier,int** prefix_scan, int** queue,int n);
 int main(int argc, char** argv) {
-    char *path = "data/california.txt";
+    const char *path = "data/california.txt";
     int start = 120;
     int end = 1132332;
     if(argc == 4) {
