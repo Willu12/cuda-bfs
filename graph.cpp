@@ -42,7 +42,8 @@ Graph get_Graph_from_file(char const* path) {
 
 void get_path(int start, int end, int *prev, int n,const std::string& fileName) {
     int len = 1;
-    std::vector<int> path(n);
+    int* path = new int[n];
+    //std::vector<int> path(n);
     path[0] = end;
     int v = prev[end];
     while(v != start) {
@@ -50,7 +51,8 @@ void get_path(int start, int end, int *prev, int n,const std::string& fileName) 
         v = prev[v];
     }
 
-    std::vector<int> reversed_path(len + 1);
+    int* reversed_path = new int[len + 1];
+   // std::vector<int> reversed_path(len + 1);
     reversed_path[0] = start;
     for(int i = 0; i < len ; i++) {
         reversed_path[i + 1] = path[len -1  - i];
