@@ -65,7 +65,7 @@ void compute_bfs(const Graph& g, int start, int end, std::vector<int>& prev) {
     }
 }
 
-void get_path(int start, int end, int *prev, int n,const std::string& fileName) {
+void get_path(int start, int end, int *prev, int n, std::string fileName) {
     int len = 1;
     std::vector<int> path(n);
     path[0] = end;
