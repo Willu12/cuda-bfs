@@ -1,5 +1,6 @@
 #include <iostream>
 #include <queue>
+#include <ctime>
 #include "kernels.cuh"
 #include "bfs_prefix_scan.cuh"
 #include "graph.hpp"
