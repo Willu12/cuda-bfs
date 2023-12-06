@@ -7,7 +7,6 @@
 #include "bfs_prefix_scan.cuh"
 #include "cuda_runtime.h"
 #include "device_launch_parameters.h"
-#include <stdio.h>
 
 
 
@@ -175,8 +174,6 @@ __global__ void kernel_cuda_frontier_numbers(
     for (int v = 0; v < num_vertices; v += num_threads)
     {
         int vertex = v + tid;
-
-       //printf("result[end] = %d\n",result[end]);
         if (vertex < num_vertices && result[vertex] == iteration)
         {
 
