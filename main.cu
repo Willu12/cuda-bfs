@@ -14,7 +14,6 @@
 
 
 void compute_bfs(const Graph& g, int start, int end, std::vector<int>& prev);
-void get_path(int start, int end, const std::vector<int>& prev,int n, const std::string& fileName);
 void cpu_BFS(const Graph& g, int start, int end);
 int main(int argc, char** argv) {
     const char *path = "data/california.txt";
@@ -62,30 +61,6 @@ void compute_bfs(const Graph& g, int start, int end, std::vector<int>& prev) {
         }
     }
 }
-
-void get_path(int start, int end, int *prev, int n,const std::string& fileName) {
-    int len = 1;
-    std::vector<int> path(n);
-    path[0] = end;
-    int v = prev[end];
-    while(v != start) {
-        path[len++] = v;
-        v = prev[v];
-    }
-
-    std::vector<int> reversed_path(len + 1);
-    reversed_path[0] = start;
-    for(int i = 0; i < len ; i++) {
-        reversed_path[i + 1] = path[len -1  - i];
-    }
-
-    std::ofstream output(fileName);
-    for(int i =1; i <= len; i++) {
-        output <<  reversed_path[i] << '\n';
-    }
-    output.close();    
-}
-
 
 void cpu_BFS(const Graph &g, int start, int end) {
     std::vector<int> prev(g.n);

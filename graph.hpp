@@ -12,3 +12,4 @@ struct Graph {
 };
 
 Graph get_Graph_from_file(char const* path);
+void get_path(int start, int end, const std::vector<int>& prev,int n, const std::string& fileName);
