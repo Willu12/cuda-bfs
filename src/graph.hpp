@@ -1,5 +1,7 @@
 #pragma once
 #include <vector>
+#include <iostream>
+#include <fstream>
 
 struct Graph {
     int n; // |V|
@@ -10,3 +12,4 @@ struct Graph {
 };
 
 Graph get_Graph_from_file(char const* path);
+void get_path(int start, int end,int* prev,int n, const std::string& fileName);
