@@ -1,15 +1,11 @@
 #include <iostream>
 #include <queue>
-#include <vector>
-#include <ctime>
-#include <fstream>
 #include "kernels.cuh"
 #include "bfs_prefix_scan.cuh"
 #include "graph.hpp"
 #include "cuda_runtime.h"
 #include "scan.cuh"
 #include "device_launch_parameters.h"
-#include <stdio.h>
 
 
 
@@ -79,59 +75,6 @@ void cpu_BFS(const Graph &g, int start, int end) {
     get_path(start,end,prev.data(),g.n,"cpu_output.txt");
 }
 
-cudaError_t cuda_BFS_prefix_scan(const Graph& G, int start, int end) {
-    int* v_adj_list = nullptr;
-    int* v_adj_begin = nullptr;
-    int* v_adj_length = nullptr;
-    int* queue = nullptr;
-    int* prev = nullptr;
-    int* prefix_scan = nullptr;
-    bool* visited = nullptr;
-    int* frontier = nullptr;
-    cudaError_t cudaStatus;
 
-    double duration;
-    std::clock_t start_clock = std::clock();
-
-    bool stop = false;
-    bool* d_stop;
-    cudaMalloc(&d_stop,sizeof(bool));
-
-    cudaStatus = cuda_init(G,&v_adj_list,&v_adj_begin,&v_adj_length,&queue,&prev,&visited,&frontier,&prefix_scan);
-    if (cudaStatus != cudaSuccess) {
-        fprintf(stderr, "cuda init failed");
-    }
-    int* host_queue = (int*)malloc(sizeof(int) * 2);
-    host_queue[0] = 1;
-    host_queue[1] = start;
-
-    cudaMemcpy(queue,host_queue,2 * sizeof(int),cudaMemcpyHostToDevice);
-    free(host_queue);
-
-    //main loop
-    while(!stop) {
-
-        //iter
-        cuda_prefix_queue_iter(v_adj_list,v_adj_begin,v_adj_length,queue,visited,frontier,prev,end,d_stop,&stop);
-        //create queue
-        create_queue(frontier,&prefix_scan,&queue,G.n);
-        //clear frontier
-        cudaStatus = cudaMemset(frontier, 0, G.n * sizeof(int));
-        //bfs layer scan
-    }
-
-    //copy prev array to cpu
-    int* h_prev = (int*)malloc(G.n * sizeof(int));
-    cudaMemcpy(h_prev,prev,G.n * sizeof(int),cudaMemcpyDeviceToHost);
-    cuda_free_all(v_adj_list,v_adj_begin, v_adj_length, queue, prev, visited, frontier, prefix_scan);
-
-    duration = (double) (std::clock() - start_clock) /  (double) CLOCKS_PER_SEC;
-    std::cout<<"gpu bfs with prefix_scan took: "<<duration <<" seconds\n";
-
-
-    get_path(start,end,h_prev,G.n,"gpu_output.txt");
-    free(h_prev);
-    return cudaStatus;
-}
 
 
