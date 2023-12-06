@@ -1,5 +1,4 @@
 #include "bfs_layer_count.cuh"
-#include <stdio.h>
 __global__ void kernel_cuda_frontier_numbers(int *v_adj_list, int *v_adj_begin, int *v_adj_length,
         int num_vertices, int *result, int* prev, bool *still_running, int end, int iteration) {
 
@@ -14,7 +13,7 @@ __global__ void kernel_cuda_frontier_numbers(int *v_adj_list, int *v_adj_begin, 
             for (int n = 0; n < v_adj_length[vertex]; n++)
             {
                 int neighbor = v_adj_list[v_adj_begin[vertex] + n];
-                if(neighbor >= num_vertices) printf("u = %d, n = %d",neighbor,num_vertices);
+                if(neighbor >= num_vertices)
                 if (result[neighbor] == num_vertices + 1)
                 {
                     result[neighbor] = iteration + 1;

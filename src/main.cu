@@ -14,7 +14,7 @@
 void compute_bfs(const Graph& g, int start, int end, std::vector<int>& prev);
 void cpu_BFS(const Graph& g, int start, int end);
 int main(int argc, char** argv) {
-    const char *path = "data/california.txt";
+    const char *path = "data/wiki-topcats.txt";
     int start = 120;
     int end = 1132332;
     if(argc == 4) {

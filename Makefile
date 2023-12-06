@@ -7,7 +7,7 @@ NVCC := nvcc
 CFLAGS := -std=c++11
 
 # CUDA flags
-CUDAFLAGS := -lineinfo
+CUDAFLAGS :=
 
 # Source files
 SRCS := src/main.cu src/graph.cpp src/scan.cu src/kernels.cu src/bfs_prefix_scan.cu src/bfs_layer_count.cu

@@ -1,6 +1,4 @@
 #include "kernels.cuh"
-#include "stdio.h"
-
 #define SHARED_MEMORY_BANKS 32
 #define LOG_MEM_BANKS 5
 #define CONFLICT_FREE_OFFSET(n) ((n) >> LOG_MEM_BANKS)
@@ -169,9 +167,8 @@ __global__ void bfs_cuda_prescan_iter(int* v_adj_list,int* v_adj_begin,int* v_ad
 	for(int i =0; i<v_adj_length[v]; i++) {
        // if(visited[end]) break;
 		int u = v_adj_list[offset + i];
-		if(u >= n) printf("u = %d a maks n= %d\n",u,n-1);
+		if(u >= n)
         if(visited[u]) continue;
-       // printf("neighbour of %d is %d\n",v,u);
         frontier[u] = 1;
 		visited[u] = true;
 		prev[u] = v;
