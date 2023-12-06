@@ -1,5 +1,6 @@
 /.idea
 cuda_bfs
-output/*
+output/graph1.txt
+output/wiki-topcats.txt
 /data
 .vscode/
