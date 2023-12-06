@@ -20,7 +20,7 @@ int nextPowerOfTwo(int x) {
 	return power;
 }
 
-float blockscan(int *output, int *input, int length){
+void blockscan(int *output, int *input, int length){
 	int *d_out, *d_in;
 	const int arraySize = length * sizeof(int);
 
@@ -29,38 +29,16 @@ float blockscan(int *output, int *input, int length){
 	cudaMemcpy(d_out, output, arraySize, cudaMemcpyHostToDevice);
 	cudaMemcpy(d_in, input, arraySize, cudaMemcpyHostToDevice);
 
-	// start timer
-	cudaEvent_t start, stop;
-	cudaEventCreate(&start);
-	cudaEventCreate(&stop);
-	cudaEventRecord(start);
-
 	int powerOfTwo = nextPowerOfTwo(length);
 	prescan_arbitrary<<<1, (length + 1) / 2, 2 * powerOfTwo * sizeof(int)>>>(d_out, d_in, length, powerOfTwo);
-
-	// end timer
-	cudaEventRecord(stop);
-	cudaEventSynchronize(stop);
-	float elapsedTime = 0;
-	cudaEventElapsedTime(&elapsedTime, start, stop);
 
 	cudaMemcpy(output, d_out, arraySize, cudaMemcpyDeviceToHost);
 
 	cudaFree(d_out);
 	cudaFree(d_in);
-	cudaEventDestroy(start);
-	cudaEventDestroy(stop);
-
-	return elapsedTime;
 }
 
-float scan(int *output, int *input, int length) {
-
-	// start timer
-	cudaEvent_t start, stop;
-	cudaEventCreate(&start);
-	cudaEventCreate(&stop);
-	cudaEventRecord(start);
+void scan(int *output, int *input, int length) {
 
     if (length > ELEMENTS_PER_BLOCK) {
 		scanLargeDeviceArray(output, input, length);
@@ -68,21 +46,7 @@ float scan(int *output, int *input, int length) {
 	else {
 		scanSmallDeviceArray(output, input, length);
 	}
-
-
-    // end timer
-	cudaEventRecord(stop);
-	cudaEventSynchronize(stop);
-	float elapsedTime = 0;
-	cudaEventElapsedTime(&elapsedTime, start, stop);
-
-    
-	cudaEventDestroy(start);
-	cudaEventDestroy(stop);
-
-	return elapsedTime;
 }
-
 
 void scanLargeDeviceArray(int *d_out, int *d_in, int length) {
 	int remainder = length % (ELEMENTS_PER_BLOCK);
