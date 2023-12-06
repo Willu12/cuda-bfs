@@ -4,6 +4,7 @@
 #include <ctime>
 #include <fstream>
 #include "kernels.cuh"
+#include "bfs_prefix_scan.cuh"
 #include "graph.hpp"
 #include "cuda_runtime.h"
 #include "scan.cuh"

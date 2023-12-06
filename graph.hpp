@@ -1,4 +1,7 @@
+#pragma once
 #include <vector>
+#include <iostream>
+#include <fstream>
 
 struct Graph {
     int n; // |V|
