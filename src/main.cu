@@ -16,7 +16,7 @@ int main(int argc, char** argv) {
     const char *path = "data/wiki-topcats.txt";
     int start = 120;
     int end = 1132332;
-    if(argc == 4) {
+    if(argc == 4 || argc == 5) {
         path = argv[1];
         start = atoi(argv[2]);
         end = atoi(argv[3]);
@@ -25,6 +25,9 @@ int main(int argc, char** argv) {
     cpu_BFS(new_graph,start,end);
     cuda_BFS_prefix_scan(new_graph, start, end);
     cuda_BFS_frontier_numbers(new_graph,start,end);
+
+    //check output
+    if(argc == 5) check_output(new_graph,start,end);
 
     return 0;
 }
