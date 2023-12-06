@@ -96,6 +96,6 @@ void cuda_BFS_frontier_numbers(const Graph& G, int start, int end) {
     //copy prev array to cpu
     int* h_prev = (int*)malloc(G.n * sizeof(int));
     cudaMemcpy(h_prev,prev,G.n * sizeof(int),cudaMemcpyDeviceToHost);
-    get_path(start,end,h_prev,G.n,"gpu_output_frontier.txt");
+    get_path(start,end,h_prev,G.n,"output/gpu_output_frontier.txt");
     free(h_prev);
 }

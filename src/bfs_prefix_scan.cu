@@ -195,7 +195,7 @@ cudaError_t cuda_BFS_prefix_scan(const Graph& G, int start, int end) {
     std::cout<<"gpu bfs with prefix_scan took: "<<duration <<" seconds\n";
 
 
-    get_path(start,end,h_prev,G.n,"gpu_output.txt");
+    get_path(start,end,h_prev,G.n,"output/gpu_output.txt");
     free(h_prev);
     return cudaStatus;
 }

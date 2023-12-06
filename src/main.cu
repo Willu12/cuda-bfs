@@ -75,5 +75,5 @@ void cpu_BFS(const Graph &g, int start, int end) {
 
     std::cout<<"cpu bfs took: "<<duration <<" seconds\n";
 
-    get_path(start,end,prev.data(),g.n,"cpu_output.txt");
+    get_path(start,end,prev.data(),g.n,"output/cpu_output.txt");
 }
