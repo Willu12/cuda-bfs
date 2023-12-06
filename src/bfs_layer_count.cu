@@ -65,8 +65,12 @@ void cuda_BFS_frontier_numbers(const Graph& G, int start, int end) {
     cudaMemcpy(result, h_result, sizeof(int) * G.n, cudaMemcpyHostToDevice);
 
     bool* h_running = new bool[1];
-    double duration;
-    std::clock_t start_clock = std::clock();
+    //start measuring time
+    cudaEvent_t start_time,stop_time;
+    float time;
+    cudaEventCreate(&start_time);
+    cudaEventCreate(&stop_time);
+    cudaEventRecord(start_time,0);
 
     do
     {
@@ -89,8 +93,12 @@ void cuda_BFS_frontier_numbers(const Graph& G, int start, int end) {
         cudaMemcpy(h_running, running, sizeof(bool) * 1, cudaMemcpyDeviceToHost);
     } while (*h_running);
 
-    duration = (double) (std::clock() - start_clock) /  (double) CLOCKS_PER_SEC;
-    std::cout<<"gpu bfs with frontier took: "<<duration <<" seconds\n";
+    cudaEventRecord(stop_time,0);
+    cudaEventSynchronize(stop_time);
+    cudaEventElapsedTime(&time,start_time,stop_time);
+    cudaEventDestroy(start_time);
+    cudaEventDestroy(stop_time);
+    std::cout<<"gpu bfs with layer counter took: "<<time <<" ms\n";
 
     //copy prev array to cpu
     int* h_prev = (int*)malloc(G.n * sizeof(int));

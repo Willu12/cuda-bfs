@@ -3,8 +3,6 @@
 #include "cuda_runtime.h"
 #include <iostream>
 #include "scan.cuh"
-#include <ctime>
-
 #include "kernels.cuh"
 
 cudaError_t cuda_init(const Graph& G, int** v_adj_list, int** v_adj_begin, int** v_adj_length,int** queue,

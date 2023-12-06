@@ -1,6 +1,5 @@
 #include <iostream>
 #include <queue>
-#include <ctime>
 #include "kernels.cuh"
 #include "bfs_prefix_scan.cuh"
 #include "graph.hpp"
@@ -37,6 +36,13 @@ void compute_bfs(const Graph& g, int start, int end, std::vector<int>& prev) {
     Q.push(start);
     visited[start] = true;
 
+    //start measure time
+    cudaEvent_t start_time,stop_time;
+    float time;
+    cudaEventCreate(&start_time);
+    cudaEventCreate(&stop_time);
+    cudaEventRecord(start_time,0);
+
     while(!Q.empty()) {
         int v = Q.front();
         Q.pop();
@@ -59,6 +65,14 @@ void compute_bfs(const Graph& g, int start, int end, std::vector<int>& prev) {
             }
         }
     }
+    //end measure time
+    cudaEventRecord(stop_time,0);
+    cudaEventSynchronize(stop_time);
+    cudaEventElapsedTime(&time,start_time,stop_time);
+    cudaEventDestroy(start_time);
+    cudaEventDestroy(stop_time);
+    std::cout<<"cpu bfs took: "<<time <<" ms\n";
+
 }
 
 void cpu_BFS(const Graph &g, int start, int end) {
@@ -66,14 +80,7 @@ void cpu_BFS(const Graph &g, int start, int end) {
     for(int v = 0; v<g.n; v++) {
         prev[v] = UINT_MAX;
     }
-
-    double duration;
-    std::clock_t start_clock = std::clock();
-    //start_clock = std::clock();
     compute_bfs(g,start,end,prev);
-    duration = (double) (std::clock() - start_clock) /  (double) CLOCKS_PER_SEC;
-
-    std::cout<<"cpu bfs took: "<<duration <<" seconds\n";
 
     get_path(start,end,prev.data(),g.n,"output/cpu_output.txt");
 }

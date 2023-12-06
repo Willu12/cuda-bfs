@@ -158,9 +158,6 @@ cudaError_t cuda_BFS_prefix_scan(const Graph& G, int start, int end) {
     int* frontier = nullptr;
     cudaError_t cudaStatus;
 
-    double duration;
-    std::clock_t start_clock = std::clock();
-
     bool stop = false;
     bool* d_stop;
     cudaMalloc(&d_stop,sizeof(bool));
@@ -176,6 +173,12 @@ cudaError_t cuda_BFS_prefix_scan(const Graph& G, int start, int end) {
     cudaMemcpy(queue,host_queue,2 * sizeof(int),cudaMemcpyHostToDevice);
     free(host_queue);
 
+
+    cudaEvent_t start_time,stop_time;
+    float time;
+    cudaEventCreate(&start_time);
+    cudaEventCreate(&stop_time);
+    cudaEventRecord(start_time,0);
     //main loop
     while(!stop) {
 
@@ -188,13 +191,19 @@ cudaError_t cuda_BFS_prefix_scan(const Graph& G, int start, int end) {
         //bfs layer scan
     }
 
+    cudaEventRecord(stop_time,0);
+    cudaEventSynchronize(stop_time);
+    cudaEventElapsedTime(&time,start_time,stop_time);
+    cudaEventDestroy(start_time);
+    cudaEventDestroy(stop_time);
+    std::cout<<"gpu bfs with prefix_scan took: "<<time <<" ms\n";
+
+
     //copy prev array to cpu
     int* h_prev = (int*)malloc(G.n * sizeof(int));
     cudaMemcpy(h_prev,prev,G.n * sizeof(int),cudaMemcpyDeviceToHost);
     cuda_free_all(v_adj_list,v_adj_begin, v_adj_length, queue, prev, visited, frontier, prefix_scan);
 
-    duration = (double) (std::clock() - start_clock) /  (double) CLOCKS_PER_SEC;
-    std::cout<<"gpu bfs with prefix_scan took: "<<duration <<" seconds\n";
 
 
     get_path(start,end,h_prev,G.n,"output/gpu_output.txt");
