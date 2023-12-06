@@ -5,7 +5,6 @@
 #include "kernels.cuh"
 #include "stdio.h"
 
-float blockscan(int *output, int *input, int length);
 float scan(int *output, int *input, int length);
 
 void scanLargeDeviceArray(int *output, int *input, int length);

@@ -14,24 +14,6 @@ int nextPowerOfTwo(int x) {
 	return power;
 }
 
-void blockscan(int *output, int *input, int length){
-	int *d_out, *d_in;
-	const int arraySize = length * sizeof(int);
-
-	cudaMalloc((void **)&d_out, arraySize);
-	cudaMalloc((void **)&d_in, arraySize);
-	cudaMemcpy(d_out, output, arraySize, cudaMemcpyHostToDevice);
-	cudaMemcpy(d_in, input, arraySize, cudaMemcpyHostToDevice);
-
-	int powerOfTwo = nextPowerOfTwo(length);
-	prescan_arbitrary<<<1, (length + 1) / 2, 2 * powerOfTwo * sizeof(int)>>>(d_out, d_in, length, powerOfTwo);
-
-	cudaMemcpy(output, d_out, arraySize, cudaMemcpyDeviceToHost);
-
-	cudaFree(d_out);
-	cudaFree(d_in);
-}
-
 void scan(int *output, int *input, int length) {
 
     if (length > ELEMENTS_PER_BLOCK) {
