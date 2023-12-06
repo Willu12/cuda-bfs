@@ -158,12 +158,10 @@ __global__ void queue_from_prescan(int* queue,int* prefix_sum,int* frontier,int 
     for(int v = 0; v < n; v+=num_threads){
         int vertex = v + tid;
         if (vertex < n && frontier[vertex]) queue[prefix_sum[vertex] + 1] = vertex;
-
     }
 
  	//size of queue
- 	if (tid == 0) queue[0] = prefix_sum[n -1] + (int) frontier[n -1 ];
-
+ 	if (tid == 0) queue[0] = prefix_sum[n -1] + (int) frontier[n -1];
 }
 
 __global__ void bfs_cuda_prescan_iter(int* v_adj_list,int* v_adj_begin,int* v_adj_length,int* queue, int* frontier, bool* visited,int *prev ,int end, bool* stop,int tid_offset) {
@@ -172,6 +170,7 @@ __global__ void bfs_cuda_prescan_iter(int* v_adj_list,int* v_adj_begin,int* v_ad
 	int v = queue[tid + 1];
 	int offset = v_adj_begin[v];
 	for(int i =0; i<v_adj_length[v]; i++) {
+       // if(visited[end]) break;
 		int u = v_adj_list[offset + i];
         if(visited[u]) continue;
        // printf("neighbour of %d is %d\n",v,u);

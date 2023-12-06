@@ -119,17 +119,13 @@ void scanLargeEvenDeviceArray(int *d_out, int *d_in, int length) {
 
 
     const int sumsArrThreadsNeeded = (blocks + 1) / 2;
-    //printf("ch22uk\n");
 
     if (sumsArrThreadsNeeded > THREADS_PER_BLOCK) {
-        // perform a large scan on the sums arr
         scanLargeDeviceArray(d_incr, d_sums, blocks);
     }
     else {
-        // only need one block to scan sums arr so can use small scan
         scanSmallDeviceArray(d_incr, d_sums, blocks);
     }
-
 
     add<<<blocks, ELEMENTS_PER_BLOCK>>>(d_out, ELEMENTS_PER_BLOCK, d_incr);
 

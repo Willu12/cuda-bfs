@@ -10,14 +10,14 @@ CFLAGS := -std=c++11
 CUDAFLAGS := -arch=sm_61
 
 # Source files
-SRCS := main.cu graph.cpp scan.cu kernels.cu
+SRCS := main.cu graph.cpp scan.cu kernels.cu bfs_prefix_scan.cu
 
 # Target executable
-TARGET := my_cuda_program
+TARGET := cuda_bfs
 
 # Build executable
 $(TARGET): $(SRCS)
-	$(NVCC) $(CFLAGS) $(CUDAFLAGS) $^ -o $(TARGET)
+	$(NVCC) $(CFLAGS) $^ -o $(TARGET)
 
 # Clean rule
 clean:
