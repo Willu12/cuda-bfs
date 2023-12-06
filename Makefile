@@ -10,7 +10,7 @@ CFLAGS := -std=c++11
 CUDAFLAGS := -arch=sm_61
 
 # Source files
-SRCS := main.cu graph.cpp scan.cu kernels.cu bfs_prefix_scan.cu
+SRCS := src/main.cu src/graph.cpp src/scan.cu src/kernels.cu src/bfs_prefix_scan.cu
 
 # Target executable
 TARGET := cuda_bfs
