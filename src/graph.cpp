@@ -74,7 +74,7 @@ void check_output(const Graph& G, int start,int end) {
     std::vector<int> cpu_path,gpu_prefix_path,gpu_layer_path;
     get_path_from_file("output/cpu_output.txt",cpu_path);
     get_path_from_file("output/gpu_output.txt",gpu_prefix_path);
-    get_path_from_file("output/gpu_output_frontier.txt",gpu_layer_path);
+    get_path_from_file("output/gpu_layer_output.txt",gpu_layer_path);
 
     if(cpu_path.size() != gpu_prefix_path.size() || cpu_path.size() != gpu_layer_path.size()) {
         std::cout<<"paths have different lengths\n";

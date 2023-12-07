@@ -23,6 +23,8 @@ int main(int argc, char** argv) {
     }
     Graph new_graph = get_Graph_from_file(path);
     cpu_BFS(new_graph,start,end);
+
+    cudaSetDevice(0);
     cuda_BFS_prefix_scan(new_graph, start, end);
     cuda_BFS_frontier_numbers(new_graph,start,end);
 

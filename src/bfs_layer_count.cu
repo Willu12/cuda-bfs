@@ -1,19 +1,22 @@
 #include "bfs_layer_count.cuh"
 __global__ void kernel_cuda_frontier_numbers(int *v_adj_list, int *v_adj_begin, int *v_adj_length,
-        int num_vertices, int *result, int* prev, bool *still_running, int end, int iteration) {
+        int n, int *result, int* prev, bool *still_running, int end, int iteration) {
 
     int tid = blockIdx.x * blockDim.x + threadIdx.x;
     int num_threads = blockDim.x * gridDim.x;
 
-    for (int v = 0; v < num_vertices; v += num_threads)
+    //if I would call not enough threads
+    for (int v = 0; v < n; v += num_threads)
     {
         int vertex = v + tid;
-        if (vertex < num_vertices && result[vertex] == iteration)
+        if (vertex < n && result[vertex] == iteration)
         {
-            for (int n = 0; n < v_adj_length[vertex]; n++)
+            for (int i = 0; i < v_adj_length[vertex]; i++)
             {
-                int neighbor = v_adj_list[v_adj_begin[vertex] + n];
-                if (result[neighbor] == num_vertices + 1)
+                int neighbor = v_adj_list[v_adj_begin[vertex] + i];
+
+                //check if not visited yet
+                if (result[neighbor] == n + 1)
                 {
                     result[neighbor] = iteration + 1;
                     prev[neighbor] = vertex;
@@ -23,7 +26,7 @@ __global__ void kernel_cuda_frontier_numbers(int *v_adj_list, int *v_adj_begin, 
                         *still_running = false;
                         break;
                     }
-                    *still_running = true;
+                    *still_running = true; // we added neighbour to queue
                 }
 
             }
@@ -41,7 +44,7 @@ void cuda_BFS_frontier_numbers(const Graph& G, int start, int end) {
     int* h_result = (int*)malloc(G.n * sizeof(int));
 
     bool* running;
-    int kernel_runs = 0;
+    int level = 0;
 
     cudaMalloc(&v_adj_list, sizeof(int) * G.m);
     cudaMalloc(&v_adj_begin, sizeof(int) * G.n);
@@ -50,9 +53,8 @@ void cuda_BFS_frontier_numbers(const Graph& G, int start, int end) {
     cudaMalloc(&result,sizeof(int) * G.n);
     cudaMalloc(&running, sizeof(bool) * 1);
 
-
-    int ELEMENTS_PER_BLOCK = 1024;
-    int blocks = G.n / ELEMENTS_PER_BLOCK;
+    const int THREADS_PER_BLOCK = 512;
+    int blocks = G.n / THREADS_PER_BLOCK;
     if(blocks == 0) blocks = 1;
 
 
@@ -63,8 +65,9 @@ void cuda_BFS_frontier_numbers(const Graph& G, int start, int end) {
     cudaMemcpy(v_adj_begin, G.v_adj_begin.data(), sizeof(int) * G.n, cudaMemcpyHostToDevice);
     cudaMemcpy(v_adj_length, G.v_adj_length.data(), sizeof(int) * G.n, cudaMemcpyHostToDevice);
     cudaMemcpy(result, h_result, sizeof(int) * G.n, cudaMemcpyHostToDevice);
-
+    cudaMemcpy(prev,h_result,sizeof(int) * G.n,cudaMemcpyHostToDevice);
     bool* h_running = new bool[1];
+
     //start measuring time
     cudaEvent_t start_time,stop_time;
     float time;
@@ -77,19 +80,11 @@ void cuda_BFS_frontier_numbers(const Graph& G, int start, int end) {
         *h_running = false;
         cudaMemcpy(running, h_running, sizeof(bool) * 1, cudaMemcpyHostToDevice);
 
-        kernel_cuda_frontier_numbers<<<blocks, 512>>>(
-                v_adj_list,
-                v_adj_begin,
-                v_adj_length,
-                G.n,
-                result,
-                prev,
-                running,
-                end,
-                kernel_runs);
+        kernel_cuda_frontier_numbers<<<blocks, THREADS_PER_BLOCK>>>(v_adj_list,v_adj_begin,v_adj_length,
+                                                      G.n,result,prev,running,
+                                                      end,level);
 
-        kernel_runs++;
-
+        level++;
         cudaMemcpy(h_running, running, sizeof(bool) * 1, cudaMemcpyDeviceToHost);
     } while (*h_running);
 
@@ -103,7 +98,16 @@ void cuda_BFS_frontier_numbers(const Graph& G, int start, int end) {
     //copy prev array to cpu
     int* h_prev = (int*)malloc(G.n * sizeof(int));
     cudaMemcpy(h_prev,prev,G.n * sizeof(int),cudaMemcpyDeviceToHost);
-    get_path(start,end,h_prev,G.n,"output/gpu_output_frontier.txt");
+    get_path(start,end,h_prev,G.n,"output/gpu_layer_output.txt");
+
+    cudaFree(v_adj_list);
+    cudaFree(v_adj_begin);
+    cudaFree(v_adj_length);
+    cudaFree(prev);
+    cudaFree(result);
+    cudaFree(running);
+
+
     free(h_prev);
     free(h_result);
     free(h_running);
